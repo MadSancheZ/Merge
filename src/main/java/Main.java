@@ -7,82 +7,82 @@ import java.util.Date;
 import java.util.List;
 
 public class Main {
-    public List<Price> unitePrices(List<Price> oldPrices, List<Price> newPrices){
+
+    public List<Price> mergePrices(List<Price> oldPrices, List<Price> newPrices) throws CloneNotSupportedException {
         if(oldPrices == null || oldPrices.isEmpty()) return newPrices;
-        else {
-            List<Price> ans = new ArrayList<>();
-            Date newStart;
-            Date newEnd;
-            for (int i=0; i<Math.max(oldPrices.size(), newPrices.size()); i++) {
-                Price oldPrice = oldPrices.get(i);
-                Price newPrice = newPrices.get(i);
-                Price curPrice;
-                if (!isSamePrice(oldPrice, newPrice)){
-                    if(oldPrice.getBegin().before(newPrice.getBegin())) {
-                        curPrice = oldPrice;
-                        curPrice.setEnd(newPrice.getBegin());
-                        ans.add(curPrice);
-                        curPrice = newPrice;
-                        if(oldPrice.getEnd().before(newPrice.getEnd())) {
-                            ans.add(curPrice);
-                        }else {
-                            ans.add(curPrice);
-                            curPrice = oldPrice;
-                            curPrice.setBegin(newPrice.getEnd());
-                            ans.add(curPrice);
-                        }
-                    } else {
-                        curPrice = newPrice;
-                        ans.add(curPrice);
-                        if(newPrice.getEnd().before(oldPrice.getEnd())){
-                            curPrice = oldPrice;
-                            curPrice.setBegin(newPrice.getEnd());
-                            ans.add(curPrice);
-                        }
-                    }
-                }else {
-                    curPrice = oldPrice;
-                    newStart = oldPrice.getBegin().before(newPrice.getBegin()) ? oldPrice.getBegin() : newPrice.getBegin();
-                    newEnd = oldPrice.getEnd().before(newPrice.getEnd()) ? newPrice.getEnd() : oldPrice.getEnd();
-                    curPrice.setBegin(newStart);
-                    curPrice.setEnd(newEnd);
+        if(newPrices == null || newPrices.isEmpty()) return oldPrices;
+        List<Price> ans = new ArrayList<>();
+        Date newStart;
+        Date newEnd;
+        int i = 0;
+        int j = 0;
+        while (i < oldPrices.size() && j < newPrices.size()) {
+            Price oldPrice = oldPrices.get(i);
+            Price newPrice = newPrices.get(j);
+            Price curPrice;
+            if(isSamePriceAndProduct(oldPrices.get(i), newPrices.get(j))){
+                curPrice = (Price) oldPrice.clone();
+                newStart = oldPrice.getBegin().before(newPrice.getBegin()) ? oldPrice.getBegin() : newPrice.getBegin();
+                newEnd = oldPrice.getEnd().before(newPrice.getEnd()) ? newPrice.getEnd() : oldPrice.getEnd();
+                curPrice.setBegin(newStart);
+                curPrice.setEnd(newEnd);
+                ans.add(curPrice);
+                i++;
+                j++;
+            }else if(isSameProduct(oldPrices.get(i), newPrices.get(j))){
+                if(oldPrice.getBegin().before(newPrice.getBegin())){
+                    curPrice = (Price) oldPrice.clone();
+                    curPrice.setEnd(newPrice.getBegin());
                     ans.add(curPrice);
+                    if(oldPrice.getEnd().after(newPrice.getEnd())) {
+
+                        ans.add(newPrice);
+                        curPrice = (Price) oldPrice.clone();
+                        curPrice.setBegin(newPrice.getEnd());
+                        ans.add(curPrice);
+                        j++;
+                    }else{
+                        curPrice = (Price) newPrice.clone();
+                        ans.add(curPrice);
+                        i++;
+                    }
+                }else{
+                    curPrice = (Price) newPrice.clone();
+                    ans.add(curPrice);
+                    if(oldPrice.getEnd().before(newPrice.getEnd())){
+                        i++;
+                    }else{
+                        curPrice = (Price) oldPrice.clone();
+                        curPrice.setBegin(newPrice.getEnd());
+                        ans.add(curPrice);
+                        i++;
+                        j++;
+                    }
+                }
+            }else {
+                if(i < j) i++;
+                if(i > j) j++;
+                else{
+                    ans.add(oldPrice);
+                    ans.add(newPrice);
+                    i++;
+                    j++;
                 }
             }
-            return ans;
+
         }
+        return ans;
     }
 
-    private boolean isSamePrice(Price oldPrice, Price newPrice){
+    private boolean isSamePriceAndProduct(Price oldPrice, Price newPrice){
         return oldPrice.getValue() == newPrice.getValue() && oldPrice.getNumber() == newPrice.getNumber();
     }
 
-    public static void main(String[] args) {
-        Price one = null;
-        Price two = null;
-        Price three = null;
-        Price four = null;
-        Price five = null;
-        Price six = null;
-        try {
-            one = new Price(1, "122856", 1, 1, new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").parse("01.01.2013 00:00:00"), new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").parse("31.01.2013 23:59:59"), 11000);
-            two = new Price(2, "122856", 2, 1, new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").parse("10.01.2013 00:00:00"), new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").parse("20.01.2013 23:59:59"), 99000);
-            three = new Price(1, "6654", 1, 2, new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").parse("01.01.2013 00:00:00"), new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").parse("31.01.2013 00:00:00"), 5000);
-            four = new Price(1, "122856", 1, 1, new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").parse("20.01.2013 00:00:00"), new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").parse("20.02.2013 23:59:59"), 11000);
-            five = new Price(2, "122856", 2, 1, new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").parse("15.01.2013 00:00:00"), new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").parse("25.01.2013 23:59:59"), 92000);
-            six = new Price(2, "6654", 1, 2, new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").parse("12.01.2013 00:00:00"), new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").parse("13.01.2013 00:00:00"), 4000);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
+    private boolean isSameProduct(Price oldPrice, Price newPrice){
+        return oldPrice.getNumber() == newPrice.getNumber();
+    }
 
-        List<Price> old = new ArrayList<Price>();
-        old.add(one);
-        old.add(two);
-        old.add(three);
-        List<Price> newPr = new ArrayList<Price>();
-        newPr.add(four);
-        newPr.add(five);
-        newPr.add(six);
-        new Main().unitePrices(old, newPr).forEach(System.out::println);
+    public static void main(String[] args){
+
     }
 }

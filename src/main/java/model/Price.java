@@ -1,8 +1,9 @@
 package model;
 
 import java.util.Date;
+import java.util.Objects;
 
-public class Price {
+public class Price implements Cloneable{
     long id;
     String productCode;
     int number;
@@ -87,6 +88,29 @@ public class Price {
                 ", begin=" + begin +
                 ", end=" + end +
                 ", value=" + value +
-                '}';
+                '}' + "\n";
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Price price = (Price) o;
+        return number == price.number &&
+                depart == price.depart &&
+                value == price.value &&
+                productCode.equals(price.productCode) &&
+                begin.equals(price.begin) &&
+                end.equals(price.end);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(productCode, number, depart, begin, end, value);
     }
 }
